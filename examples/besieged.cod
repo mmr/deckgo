@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cockatrice_deck version="1">
+    <deckname></deckname>
+    <comments></comments>
+    <zone name="main">
+        <card number="1" name="Massacre Wurm"/>
+        <card number="2" name="Flayer Husk"/>
+        <card number="1" name="Into the Core"/>
+        <card number="1" name="Spread the Sickness"/>
+        <card number="3" name="Viridian Emissary"/>
+        <card number="1" name="Viridian Claw"/>
+        <card number="2" name="Phyrexian Rager"/>
+        <card number="1" name="Myr Welder"/>
+        <card number="2" name="Burn the Impure"/>
+        <card number="1" name="Go for the Throat"/>
+        <card number="1" name="Lead the Stampede"/>
+        <card number="1" name="Phyrexian Revoker"/>
+        <card number="2" name="Plague Myr"/>
+        <card number="1" name="Phyrexian Crusader"/>
+        <card number="7" name="Mountain"/>
+        <card number="4" name="Forest"/>
+        <card number="7" name="Swamp"/>
+        <card number="1" name="Hellkite Igniter"/>
+        <card number="2" name="Concussive Bolt"/>
+    </zone>
+</cockatrice_deck>
