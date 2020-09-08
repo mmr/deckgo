@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"crypto/sha1"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -32,16 +33,10 @@ type card struct {
 	price  float64
 }
 
-/*
-func cleanName(name string) string {
-	return strings.ToLower(strings.TrimSpace(name))
-}
-*/
-
-func readCards(fileName string) (map[string]*card, error) {
+func readCards(fileName string) map[string]*card {
 	file, err := os.Open(fileName)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	defer file.Close()
 
@@ -57,25 +52,21 @@ func readCards(fileName string) (map[string]*card, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	return cardsMap, nil
+	return cardsMap
 }
 
-func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage: ", os.Args[0], " <deck-file>")
-		os.Exit(1)
+func fileExists(fileName string) bool {
+	info, err := os.Stat(fileName)
+	if os.IsNotExist(err) {
+		return false
 	}
+	return !info.IsDir()
+}
 
-	fileName := os.Args[1]
-	cardsMap, err := readCards(fileName)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(2)
-	}
-
+func updatePrices(cardsMap map[string]*card) {
 	i := 0
 	cardNames := make([]string, len(cardsMap))
 	for k := range cardsMap {
@@ -86,22 +77,35 @@ func main() {
 		cardNames[i] = url.QueryEscape(k)
 		i++
 	}
+	sort.Strings(cardNames)
 
 	q := fmt.Sprintf("%s%s", API_BASE_URL, strings.Join(cardNames, "+OR+"))
-	response, err := http.Get(q)
 
-	if err != nil {
-		fmt.Print(err.Error())
-		os.Exit(1)
-	}
-
-	responseData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal(err)
+	// Checking cache
+	var data []byte
+	hash := fmt.Sprintf("%x", sha1.Sum([]byte(q)))
+	cacheFile := fmt.Sprintf("%s.json", hash)
+	if fileExists(cacheFile) {
+		log.Println("Reading from cache...")
+		data, _ = ioutil.ReadFile(cacheFile)
+	} else {
+		log.Println("Not found in cache, requesting prices...")
+		resp, err := http.Get(q)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if resp.StatusCode != 200 {
+			log.Fatal("Status Code: ", resp.StatusCode)
+		}
+		data, _ = ioutil.ReadAll(resp.Body)
+		err = ioutil.WriteFile(cacheFile, data, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	var cards Cards
-	json.Unmarshal(responseData, &cards)
+	json.Unmarshal(data, &cards)
 
 	for i := 0; i < len(cards.Data); i++ {
 		name := cards.Data[i].Name
@@ -110,8 +114,20 @@ func main() {
 			c.price = price
 		}
 	}
+}
 
-	i = 0
+func main() {
+	if len(os.Args) != 2 {
+		fmt.Println("Usage: ", os.Args[0], " <deck-file>")
+		os.Exit(1)
+	}
+
+	fileName := os.Args[1]
+	cardsMap := readCards(fileName)
+	updatePrices(cardsMap)
+
+	cardNames := make([]string, len(cardsMap))
+	i := 0
 	for k := range cardsMap {
 		cardNames[i] = k
 		i++
