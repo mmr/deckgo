@@ -116,16 +116,7 @@ func updatePrices(cardsMap map[string]*card) {
 	}
 }
 
-func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage: ", os.Args[0], " <deck-file>")
-		os.Exit(1)
-	}
-
-	fileName := os.Args[1]
-	cardsMap := readCards(fileName)
-	updatePrices(cardsMap)
-
+func printDeck(cardsMap map[string]*card) {
 	cardNames := make([]string, len(cardsMap))
 	i := 0
 	for k := range cardsMap {
@@ -146,4 +137,16 @@ func main() {
 		priceTotal += total
 	}
 	fmt.Printf("%2d %-22v = $%.2f\n", cardsTotal, "cards", priceTotal)
+}
+
+func main() {
+	if len(os.Args) != 2 {
+		fmt.Println("Usage: ", os.Args[0], " <deck-file>")
+		os.Exit(1)
+	}
+
+	fileName := os.Args[1]
+	cardsMap := readCards(fileName)
+	updatePrices(cardsMap)
+	printDeck(cardsMap)
 }
